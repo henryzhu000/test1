@@ -1,0 +1,230 @@
+<html>
+
+            
+<body style="padding:0; margin:0; background-color: black;">
+
+
+<script>
+
+function basicObject () {
+this.element=createDivItem();
+this.items=[]; 
+this.x=0; this.y=0; this.width=0; this.height=0;
+//items supports all sorts of types fom elements, to other basicObjects, and anything like booleans, ints, images, other objects etc
+//by storing this in an arraylist, the properties of basic object is dynamic and thus doesn't have to have it's properties further hard coded 
+this.getItem=function getItem(){return this.items[0];};
+this.getItems=function getItems(input){return this.items[input];};
+this.addItem=function addItem(input, elementTrue){
+    if(elementTrue){this.element.appendChild(input.element); } 
+    else{this.element.appendChild(input);} 
+    this.items.push(input);
+};
+//the set x,y,width,and height here's a bit reduant as i could do all that from element properties
+//part of oop is making use of the intellsense so i can have a coding shortcut
+this.getX=function getX(){return this.x;}; 
+this.setX=function setX(input){this.x=input; this.element.style.left=this.x;};
+this.getY=function getY(){return this.y;}; 
+this.setY=function setY(input){this.y=input; this.element.style.top=this.y;};
+this.getWidth=function getWidth(){return this.width;}; 
+this.setWidth=function setWidth(input){this.width=input; this.element.style.width=this.width;};
+this.getHeight=function getHeight(){return this.height;}; 
+this.setHeight=function setHeight(input){this.height=input; this.element.style.height=this.height;}
+}; 
+
+//support methods for basic object
+function createDivItem(){let temp=document.createElement("div"); temp.style.position="absolute"; temp.style.wordWrap="break-word";  return temp;}
+window.addEventListener("resize", updateScreenSize);
+function createText(inputText){return document.createTextNode(inputText);}
+function createImage(src){image = document.createElement("img"); image.setAttribute("src", src); return image;}
+function addToMainBody(input){document.body.appendChild(input);}
+
+
+
+let player1=true;// which's player's turn it is
+let tickCounts=0; //incase it's a tie
+let lastSize=0; //this is to center the text on the alert bar
+//alert box has 2 divs, one for the container, and one div for the text. 
+let alertBox=new basicObject();  let alertBoxMessage=new basicObject(); 
+let alertBoxActive=true; //alert box will dissapear after a while
+//all objects are placed under main body. this one is relative style, others should be absolute. 
+//relative and absolute style allows for more flexibility 
+let mainBody=new basicObject();
+mainBody.element.style.position="relative";
+mainBody.element.style.backgroundColor="orange";
+addToMainBody(mainBody.element);
+
+//alert box properties
+alertBox.element.style.position="relative";
+alertBox.setY(0);
+alertBox.element.style.backgroundColor="blue";
+alertBoxMessage.addItem(createText("Tic Tac Toe"),false);
+alertBox.addItem(alertBoxMessage.element,false);
+
+//this is during the beginning. turn on intro to tic tac toe alert
+let timer = setTimeout(() => {
+alertBoxActive=false;
+
+updateScreenSize()
+},5000);
+
+//setting up the checkerboard
+//there's 3 divs here. one for border, one for content inside the border
+//and a div for the text which is X ond O
+for(let i=0;i<9;i++){
+let temp=new basicObject();
+temp.element.style.backgroundColor="orange";
+let temp2=new basicObject();
+temp2.element.style.backgroundColor="black";
+let active=false; //active describes if the box already has a X or O on it or if the game is finished
+temp2.items.push(active);
+let state=0; //state 0 is free, 1 if O is placed in it, 2 if X is placed in it
+temp2.items.push(state);
+//mouse over and leave for estics
+temp2.element.addEventListener("mouseover", function( event ) { if(!temp2.items[0]){temp2.element.style.backgroundColor="grey";}  });
+temp2.element.addEventListener("mouseleave", function( event ) { if(!temp2.items[0]){temp2.element.style.backgroundColor="black";}  });
+ //creating the third div to put text in it depending on which player it is
+temp2.element.addEventListener("click", function( event ) { if(!temp2.items[0]){
+    let textObject =new basicObject();
+     temp2.items[0]=true; //the active variable from earlier is now to true if clicked. can't change X or O after it's been placed
+    if(player1){
+        temp2.items[1]=1;  //this is the state variable from earlier. green =1 
+        temp2.element.style.backgroundColor="green"; //box becomes green if it's an O and red if X
+        textObject.addItem(createText("O"),false); temp2.addItem(textObject,true);
+    } 
+    else{
+        temp2.items[1]=2;  
+        temp2.element.style.backgroundColor="red";           
+        textObject.addItem(createText("X"),false); 
+        temp2.addItem(textObject,true);
+    }  
+    player1=!player1;//next player's turn
+    tickCounts++; 
+    decideWinner(); //check if someone won or tie
+    startCharacterShrink(lastSize); //getting the right size and fit for X or O in box
+}});
+
+temp.addItem(temp2,true); mainBody.addItem(temp,true); //add children to parent
+}
+
+
+mainBody.addItem(alertBox,true); //should put this ontop, but alert box was coded in later so don't want to change array indexing
+
+function decideWinner(){
+for(let i=0;i<3;i++){
+    if(mainBody.getItems(i*3+0).getItem().items[1]==1 && mainBody.getItems(i*3+1).getItem().items[1]==1 && mainBody.getItems(i*3+2).getItem().items[1]==1){winnerO();}
+    if(mainBody.getItems(i*3+0).getItem().items[1]==2 && mainBody.getItems(i*3+1).getItem().items[1]==2 && mainBody.getItems(i*3+2).getItem().items[1]==2){winnerX();}
+}
+for(let i=0;i<3;i++){
+    if(mainBody.getItems(i).getItem().items[1]==1 && mainBody.getItems(i+3).getItem().items[1]==1 && mainBody.getItems(i+6).getItem().items[1]==1){winnerO();}
+    if(mainBody.getItems(i).getItem().items[1]==2 && mainBody.getItems(i+3).getItem().items[1]==2 && mainBody.getItems(i+6).getItem().items[1]==2){winnerX();}
+}
+if(mainBody.getItems(0).getItem().items[1]==1 && mainBody.getItems(4).getItem().items[1]==1 && mainBody.getItems(8).getItem().items[1]==1){winnerO();}
+if(mainBody.getItems(0).getItem().items[1]==2 && mainBody.getItems(4).getItem().items[1]==2 && mainBody.getItems(8).getItem().items[1]==2){winnerX();}
+if(mainBody.getItems(2).getItem().items[1]==1 && mainBody.getItems(4).getItem().items[1]==1 && mainBody.getItems(6).getItem().items[1]==1){winnerO();}
+if(mainBody.getItems(2).getItem().items[1]==2 && mainBody.getItems(4).getItem().items[1]==2 && mainBody.getItems(6).getItem().items[1]==2){winnerX();}
+if(tickCounts==9){nooneWins();}
+}
+
+function nooneWins(){pause("----tie-----");}
+function winnerO(){pause("---O  wins--");}
+function winnerX(){pause("---X  wins--");}
+
+//freeze the screen for a while so winner can be read on alert box
+function pause(message){
+   player1=true;
+   tickCounts=0;
+    for(let i=0;i<9;i++){
+    mainBody.getItems(i).getItem().items[0]=true;
+    }
+
+//making alert box active to be displayed
+alertBoxActive=true; updateScreenSize();
+
+alertBoxMessage.items[0].textContent=message;
+
+//once pause is over, reset the game
+    let timer = setTimeout(() => {
+alertBoxActive=false;
+
+//reseting the boxes, active state, removing X ond O, resetting colors back to default
+for(let i=0;i<9;i++){
+    mainBody.getItems(i).getItem().items[0]=false;
+    if(mainBody.getItems(i).getItem().items[1]!=0){mainBody.getItems(i).getItem().items[1]=0;
+    
+mainBody.getItems(i).getItem().element.removeChild(mainBody.getItems(i).getItem().items[2].element);
+mainBody.getItems(i).getItem().items.pop(mainBody.getItems(i).getItem().items[2].element);
+mainBody.getItems(i).getItem().element.style.backgroundColor="black";
+}
+
+}
+
+updateScreenSize();
+},5000);
+}
+
+
+
+
+
+
+function updateScreenSize(){
+
+let w = window.innerWidth;
+let h = window.innerHeight;
+ let minusHeight;
+ let smaller; //smaller is determined by if avaliable screen width or height is lesser. square checker board will fit in the smaller
+ let center; 
+alertBox.setWidth(w);
+
+//the alert box is attatched to mainBody, shouldn't be that way but short on time. if browser height is less than width then
+//the checker board will shrink in size to make way for the alert in the bottom. if height is greater than width, then alert
+//bar will be inbetween the top of browser and checker board
+if(alertBoxActive){ minusHeight=80;
+    alertBox.setHeight(minusHeight); h=h-minusHeight; alertBox.setY(-minusHeight);} 
+else{alertBox.setHeight(0); minusHeight=0;}
+
+//setting the width and height of checker board. it's a square and it'll try to fit into the middle of the screen.
+//if alert box is active, then the checker board is slightly moved down
+if(w<h){smaller=w; mainBody.setY((h-w)/2+minusHeight); mainBody.setX(0); alertBox.setX(0);
+if(alertBoxActive){if(mainBody.getY()>alertBox.getHeight()){alertBox.setHeight(mainBody.getY()); alertBox.setY(-mainBody.getY());}}
+} 
+else{smaller=h; mainBody.setX((w-h)/2); alertBox.setX(-(w-h)/2-2); mainBody.setY(0+minusHeight); }
+mainBody.setHeight(smaller); mainBody.setWidth(smaller);
+
+//trying to place the alert text in the center
+if(alertBoxActive){
+    alertBoxMessage.element.style.fontSize=40+"px";
+    alertBoxMessage.setX((alertBox.getWidth()-185)*100/200);
+    alertBoxMessage.setY((alertBox.getHeight()-42)*100/200);
+}
+
+//adjusting each of the 9 boxes inside the checker board so they're the same size and evenly spaced and within the checkerboard container
+for(let i=0;i<3;i++){
+    for(let ii=0;ii<3;ii++){let temp=mainBody.getItems(i*3+ii);   let temp2=temp.getItem();
+    temp.setHeight(smaller/3); temp.setWidth(smaller/3); temp.setY(smaller*(i/3)); temp.setX(smaller*(ii/3)); 
+    temp2.setHeight(temp.getHeight()*9/10); temp2.setWidth(temp.getWidth()*9/10);
+    temp2.setX(temp.getWidth()/20);     temp2.setY(temp.getHeight()/20);
+    }
+}
+    lastSize=smaller;
+    startCharacterShrink(smaller); //adjust the O and X text to the size of the boxes they're in
+}
+updateScreenSize();
+
+//this is so the X and O is porportial to the box it's in
+function startCharacterShrink(size){
+for(let i=0;i<9;i++){
+    mainBody.getItems(i).element.style.fontSize=size/4+"px";
+    if(mainBody.getItems(i).getItem().items[1]==1){
+        mainBody.getItems(i).getItem().items[2].setX(size/20);
+    }
+    else if(mainBody.getItems(i).getItem().items[1]==2){
+        mainBody.getItems(i).getItem().items[2].setX(size/18);
+    }
+
+}
+}
+
+
+</script>
+</body></html>
